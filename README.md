@@ -5,6 +5,10 @@ The animation speed changes dynamically based on your **CPU usage**, making it b
 
 ---
 
+## 🐾 Demo
+
+
+
 ## ✨ Features
 - 🖼️ **Animated Tray Icons** – Pets move smoothly in the tray area.  
 - ⚡ **CPU-Based Animation** – The higher your CPU usage, the faster the pet moves.  
@@ -67,4 +71,8 @@ Each folder contains `.ico` files for animation frames.
 
 ## 📌 Notes
 - Works on **Windows only** (uses `winreg` for startup registry).  
-- If `.ico` frames are missing, the app will raise an error.  
+- If `.ico` frames are missing, the app will raise an error.
+- Only `.ico` files are supported (due to Windows tray requirements).  
+- Icon size is recommended to be **16/20/24/32 px** for best results if you want some changes.  
+
+---
