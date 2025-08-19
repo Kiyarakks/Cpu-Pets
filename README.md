@@ -56,7 +56,7 @@ Each folder contains `.ico` files for animation frames.
 
 ---
 
-## 🛠️ Requirements
+## 🛠️ Requirements (not for .exe file)
 - Python 3.8+  
 - Dependencies:  
   ```bash
