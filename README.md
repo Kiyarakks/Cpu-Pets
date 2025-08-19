@@ -6,7 +6,7 @@ The animation speed changes dynamically based on your **CPU usage**, making it b
 ---
 
 ## 🐾 Demo
-https://github.com/Kiyarakks/Cpu-Pets/blob/main/Docs/demo.gif
+![Demo](Docs/demo.gif)
 
 
 ## ✨ Features
