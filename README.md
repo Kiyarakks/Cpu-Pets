@@ -54,9 +54,10 @@ Each folder contains `.ico` files for animation frames.
 ---
 
 ## 🚀 Usage
-1. Run the application (`python main.py` or packaged `.exe`).  
-2. A pet icon will appear in your **system tray**.  
-3. Right-click the icon to open the menu and configure settings.  
+1. Run the application (`PetMonitor.py` or packaged `.exe`).
+2. For Download .exe file click here! 
+3. A pet icon will appear in your **system tray**.  
+4. Right-click the icon to open the menu and configure settings.  
 
 ---
 
