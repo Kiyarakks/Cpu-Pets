@@ -6,7 +6,7 @@ import time
 import json
 from pathlib import Path
 import psutil
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFilter
 import pystray
 from pystray import MenuItem as Item, Menu
 
@@ -22,6 +22,12 @@ MAX_DELAY_S = 0.50
 SMOOTHING_ALPHA = 0.3
 THEME_POLL_S = 2.0
 
+# ---- CPU Alert Settings ----
+CPU_ALERT_THRESHOLD = 100.0        # CPU percent that triggers the alert
+CPU_ALERT_RESET_THRESHOLD = 90.0   # must drop below this before the alert can fire again
+ALERT_TITLE = "CPU Pets"
+ALERT_MESSAGE = "Your PC is using 100% of the CPU"
+
 ANIMALS = ("cat", "parrot", "horse")
 DEFAULT_ANIMAL = "cat"
 STARTUP_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -34,7 +40,6 @@ def get_settings_path():
         appdata.mkdir(exist_ok=True)
         return appdata / "settings.json"
     else:
-        
         return Path.home() / ".cpu_pets_settings.json"
 
 SETTINGS_FILE = get_settings_path()
@@ -54,6 +59,7 @@ def _hide_and_detach_console():
         pass
 
 def _get_windows_app_theme():
+    """Get the current Windows app theme"""
     try:
         key_path = r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize"
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
@@ -100,29 +106,78 @@ class CpuPets:
         self._running = True
         self._paused = False
 
-        # بارگذاری تنظیمات ذخیره شده
-        self.follow_system = True
-        self.current_theme = _get_windows_app_theme()
+        # CPU 100% alert flag (so the message is only shown once per spike)
+        self._cpu_alert_notified = False
+
+        # Load saved settings
         self.current_animal = DEFAULT_ANIMAL
         self.load_settings()
+        
+        # Get the current Windows theme
+        self.current_theme = _get_windows_app_theme()
+        self._last_theme_check = time.time()
 
-        self._last_theme_check = 0.0
         self._idx = 0
         self._cpu_smooth = psutil.cpu_percent(interval=None)
 
-        icon_img = self.frames[self.current_animal][self.current_theme][0]
+        # Build the initial icon
+        icon_img = self._get_colored_frame(0)
         self.icon = pystray.Icon("CPU Pets", icon_img, "CPU Pets")
         self.icon.menu = self._build_menu()
 
         self._anim_thread = threading.Thread(target=self._animate, daemon=True)
+
+    def _get_colored_frame(self, index):
+        """Get the frame colored appropriately for the current theme"""
+        frames = self.frames[self.current_animal][self.current_theme]
+        if not frames or index >= len(frames):
+            # Create a default icon
+            img = Image.new('RGBA', (TRAY_ICON_SIZE, TRAY_ICON_SIZE), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+            if self.current_theme == "dark":
+                draw.ellipse([4, 4, 28, 28], fill=(255, 255, 255, 255))
+            else:
+                draw.ellipse([4, 4, 28, 28], fill=(0, 0, 0, 255))
+            return img
+        
+        # Use the existing frame
+        img = frames[index].copy()
+        
+        # If the theme is dark, recolor to white
+        if self.current_theme == "dark":
+            # Convert to a white-colored image
+            result = Image.new('RGBA', img.size, (0, 0, 0, 0))
+            # Extract the alpha channel
+            if img.mode == 'RGBA':
+                r, g, b, a = img.split()
+            else:
+                img = img.convert('RGBA')
+                r, g, b, a = img.split()
+            
+            # Create a white image with the same transparency
+            white = Image.new('RGBA', img.size, (255, 255, 255, 255))
+            result = Image.composite(white, result, a)
+            return result
+        
+        else:  # Light theme
+            # Convert to a black-colored image
+            result = Image.new('RGBA', img.size, (0, 0, 0, 0))
+            if img.mode == 'RGBA':
+                r, g, b, a = img.split()
+            else:
+                img = img.convert('RGBA')
+                r, g, b, a = img.split()
+            
+            # Create a black image with the same transparency
+            black = Image.new('RGBA', img.size, (0, 0, 0, 255))
+            result = Image.composite(black, result, a)
+            return result
 
     # ----------------- Settings -----------------
     def save_settings(self):
         try:
             data = {
                 "animal": self.current_animal,
-                "theme": self.current_theme,
-                "follow_system": self.follow_system,
                 "run_on_startup": is_run_on_startup()
             }
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
@@ -136,8 +191,6 @@ class CpuPets:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 self.current_animal = data.get("animal", DEFAULT_ANIMAL)
-                self.current_theme = data.get("theme", _get_windows_app_theme())
-                self.follow_system = data.get("follow_system", True)
                 if data.get("run_on_startup", False):
                     set_run_on_startup(True)
             except Exception as e:
@@ -156,16 +209,6 @@ class CpuPets:
                 )
             ),
             Item(
-                "Theme",
-                Menu(
-                    Item("Follow system", self._toggle_follow_system, checked=lambda _: self.follow_system),
-                    Item("Light", lambda: self.set_theme("light"),
-                         checked=lambda _: (not self.follow_system and self.current_theme == "light")),
-                    Item("Dark", lambda: self.set_theme("dark"),
-                         checked=lambda _: (not self.follow_system and self.current_theme == "dark")),
-                )
-            ),
-            Item(
                 "Run on Startup",
                 self._toggle_startup,
                 checked=lambda _: is_run_on_startup()
@@ -181,29 +224,30 @@ class CpuPets:
         if folder.exists():
             paths = sorted(folder.glob("*.ico"))
         else:
+            # If the folder doesn't exist, use direct files instead
             paths = sorted(self.base.glob(f"{animal}_{theme}_*.ico"))
-        for p in paths:
-            try:
-                img = Image.open(p).convert("RGBA").resize((TRAY_ICON_SIZE, TRAY_ICON_SIZE), Image.LANCZOS)
-                frames.append(img)
-            except Exception as e:
-                print(f"Skipping {p.name}: {e}")
+        
+        if not paths:
+            # If no files were found, create a default frame
+            print(f"Warning: No frames found for {animal}/{theme}, creating default")
+            img = Image.new('RGBA', (TRAY_ICON_SIZE, TRAY_ICON_SIZE), (0, 0, 0, 0))
+            draw = ImageDraw.Draw(img)
+            draw.ellipse([4, 4, 28, 28], fill=(128, 128, 128, 255))
+            frames.append(img)
+        else:
+            for p in paths:
+                try:
+                    img = Image.open(p).convert("RGBA").resize((TRAY_ICON_SIZE, TRAY_ICON_SIZE), Image.LANCZOS)
+                    frames.append(img)
+                except Exception as e:
+                    print(f"Skipping {p.name}: {e}")
         return frames
 
     def _load_all_frames_or_fail(self):
-        missing = []
         for animal in ANIMALS:
             for theme in ("light", "dark"):
                 frames = self._load_frames_for(animal, theme)
                 self.frames[animal][theme] = frames
-                if not frames:
-                    missing.append(f"{animal}/{theme}")
-        if missing:
-            details = ", ".join(missing)
-            raise RuntimeError(
-                "Missing icon frames for: " + details +
-                "\nPut .ico files in '<animal>/<theme>/' folders (or use '<animal>_<theme>_*.ico' pattern)."
-            )
 
     # ---------- Public controls ----------
     def start(self):
@@ -213,26 +257,8 @@ class CpuPets:
     def toggle_pause(self, _=None):
         self._paused = not self._paused
 
-    def _toggle_follow_system(self, _=None):
-        self.follow_system = not self.follow_system
-        if self.follow_system:
-            self.set_theme(_get_windows_app_theme())
-        self.save_settings()
-
     def _toggle_startup(self, _=None):
         set_run_on_startup(not is_run_on_startup())
-        self.save_settings()
-
-    def set_theme(self, theme):
-        if theme not in ("light", "dark"):
-            return
-        with self._lock:
-            self.current_theme = theme
-            self._idx = 0
-            try:
-                self.icon.icon = self.frames[self.current_animal][self.current_theme][0]
-            except Exception:
-                pass
         self.save_settings()
 
     def set_animal(self, animal):
@@ -241,55 +267,86 @@ class CpuPets:
         with self._lock:
             self.current_animal = animal
             self._idx = 0
+            # Update the icon with the correct color
             try:
-                self.icon.icon = self.frames[self.current_animal][self.current_theme][0]
+                self.icon.icon = self._get_colored_frame(0)
             except Exception:
                 pass
         self.save_settings()
 
+    def _update_theme(self):
+        """Update the theme and icon based on the Windows theme"""
+        new_theme = _get_windows_app_theme()
+        if new_theme != self.current_theme:
+            self.current_theme = new_theme
+            with self._lock:
+                self._idx = 0
+                try:
+                    self.icon.icon = self._get_colored_frame(0)
+                except Exception:
+                    pass
+
     def _quit(self, _=None):
         self._running = False
-        self.save_settings()  # save before exit
+        self.save_settings()
         try:
             self.icon.visible = False
         except Exception:
             pass
         self.icon.stop()
 
+    # ---------- CPU Alert ----------
+    def _check_cpu_alert(self, instant_cpu):
+        """If CPU has reached the alert threshold and we haven't notified yet in this spike, notify"""
+        if instant_cpu >= CPU_ALERT_THRESHOLD:
+            if not self._cpu_alert_notified:
+                try:
+                    self.icon.notify(ALERT_MESSAGE, ALERT_TITLE)
+                except Exception as e:
+                    self._log_alert_error(e)
+                self._cpu_alert_notified = True
+        elif instant_cpu < CPU_ALERT_RESET_THRESHOLD:
+            # CPU has dropped enough; allow a new alert next time it spikes
+            self._cpu_alert_notified = False
+
+    def _log_alert_error(self, err):
+        """Since the console is hidden, log any notify() error to a file so it can be checked"""
+        try:
+            log_path = SETTINGS_FILE.parent / "alert_error.log"
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} - Notification failed: {err}\n")
+        except Exception:
+            pass
+
     # ---------- Animation ----------
     def _cpu_delay(self):
         instant = psutil.cpu_percent(interval=None)
         self._cpu_smooth = (SMOOTHING_ALPHA * instant) + ((1 - SMOOTHING_ALPHA) * self._cpu_smooth)
         factor = max(0.0, min(1.0, self._cpu_smooth / 100.0))
+        # The alert is checked against the instant CPU value, not the smoothed one,
+        # since smoothing means the value almost never reaches exactly 100
+        self._check_cpu_alert(instant)
         return MIN_DELAY_S + (MAX_DELAY_S - MIN_DELAY_S) * factor
-
-    def _check_auto_theme(self):
-        now = time.time()
-        if self.follow_system and (now - self._last_theme_check) >= THEME_POLL_S:
-            self._last_theme_check = now
-            themed = _get_windows_app_theme()
-            if themed != self.current_theme:
-                self.set_theme(themed)
 
     def _animate(self):
         while self._running:
             if self._paused:
                 time.sleep(0.2)
-                self._check_auto_theme()
+                self._update_theme()
                 continue
 
             with self._lock:
-                frames = self.frames[self.current_animal][self.current_theme]
-                if not frames:
-                    time.sleep(0.2)
-                    continue
                 try:
-                    self.icon.icon = frames[self._idx]
-                except Exception:
+                    # Get the frame with the correct color
+                    colored_frame = self._get_colored_frame(self._idx)
+                    self.icon.icon = colored_frame
+                except Exception as e:
+                    print(f"Animation error: {e}")
                     pass
-                self._idx = (self._idx + 1) % len(frames)
+                self._idx = (self._idx + 1) % len(self.frames[self.current_animal][self.current_theme])
 
-            self._check_auto_theme()
+            # Check the Windows theme
+            self._update_theme()
             time.sleep(self._cpu_delay())
 
 if __name__ == "__main__":
