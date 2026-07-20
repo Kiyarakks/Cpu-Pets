@@ -58,7 +58,7 @@ Each folder contains `.ico` files for animation frames. Icons can be plain silho
 
 ## 🚀 Usage
 1. Run the application (`PetMonitor_new.py` or packaged `.exe`).
-2. For Download .exe file click [CpuPets](https://github.com/Kiyarakks/Cpu-Pets/releases/download/v1.0.0/CpuPets.v1.0.0.exe)
+2. For Download .exe file click [CpuPets](https://github.com/Kiyarakks/Cpu-Pets/releases/download/v1.1.0/CpuPets.v1.1.0.exe)
 3. A pet icon will appear in your **system tray**.  
 4. Right-click the icon to open the menu and configure settings.  
 
