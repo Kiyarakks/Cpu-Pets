@@ -108,6 +108,8 @@ class CpuPets:
 
         # CPU 100% alert flag (so the message is only shown once per spike)
         self._cpu_alert_notified = False
+        # Whether the CPU 100% alert is enabled (user-toggleable, saved in settings)
+        self.cpu_alert_enabled = True
 
         # Load saved settings
         self.current_animal = DEFAULT_ANIMAL
@@ -178,7 +180,8 @@ class CpuPets:
         try:
             data = {
                 "animal": self.current_animal,
-                "run_on_startup": is_run_on_startup()
+                "run_on_startup": is_run_on_startup(),
+                "cpu_alert_enabled": self.cpu_alert_enabled
             }
             with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
                 json.dump(data, f)
@@ -191,6 +194,7 @@ class CpuPets:
                 with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
                     data = json.load(f)
                 self.current_animal = data.get("animal", DEFAULT_ANIMAL)
+                self.cpu_alert_enabled = data.get("cpu_alert_enabled", True)
                 if data.get("run_on_startup", False):
                     set_run_on_startup(True)
             except Exception as e:
@@ -206,6 +210,16 @@ class CpuPets:
                     Item("Cat", lambda: self.set_animal("cat"), checked=lambda _: self.current_animal == "cat"),
                     Item("Parrot", lambda: self.set_animal("parrot"), checked=lambda _: self.current_animal == "parrot"),
                     Item("Horse", lambda: self.set_animal("horse"), checked=lambda _: self.current_animal == "horse"),
+                )
+            ),
+            Item(
+                "Alerts",
+                Menu(
+                    Item(
+                        "CPU 100% Usage Alert",
+                        self._toggle_cpu_alert,
+                        checked=lambda _: self.cpu_alert_enabled
+                    ),
                 )
             ),
             Item(
@@ -261,6 +275,13 @@ class CpuPets:
         set_run_on_startup(not is_run_on_startup())
         self.save_settings()
 
+    def _toggle_cpu_alert(self, _=None):
+        self.cpu_alert_enabled = not self.cpu_alert_enabled
+        if not self.cpu_alert_enabled:
+            # Reset the notified flag so re-enabling starts fresh
+            self._cpu_alert_notified = False
+        self.save_settings()
+
     def set_animal(self, animal):
         if animal not in ANIMALS:
             return
@@ -298,6 +319,8 @@ class CpuPets:
     # ---------- CPU Alert ----------
     def _check_cpu_alert(self, instant_cpu):
         """If CPU has reached the alert threshold and we haven't notified yet in this spike, notify"""
+        if not self.cpu_alert_enabled:
+            return
         if instant_cpu >= CPU_ALERT_THRESHOLD:
             if not self._cpu_alert_notified:
                 try:
