@@ -81,7 +81,7 @@ At runtime, the app creates a data folder under `%APPDATA%\CPU_Pets\` containing
 
 ## 🚀 Usage
 1. Run the application (`main.pyw`, or a packaged `.exe`).
-2. For Download .exe file click [CpuPets](https://github.com/Kiyarakks/Cpu-Pets/releases/download/v1.1.0/CpuPets.v1.1.0.exe)
+2. For Download .exe file click [CpuPets](https://github.com/Kiyarakks/Cpu-Pets/releases/download/v2.0.0/CpuPets.v2.0.0.exe)
 3. A pet icon will appear in your **system tray**.
 4. Right-click the icon to open the menu and configure settings, or left-click to quickly open Screen Time.
 
