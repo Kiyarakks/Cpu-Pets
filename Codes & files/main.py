@@ -1,33 +1,3 @@
-"""
-CPU Pets
---------
-A Windows system tray application built entirely on PyQt5.
-
-Core feature ("the pet"):
-  - An animated animal icon lives in the system tray and reacts to CPU
-    usage: the busier the CPU, the faster it animates.
-  - The icon automatically matches the current Windows light/dark theme.
-  - Right-clicking the icon opens a custom dark, modern context menu
-    (not the native Windows menu).
-  - Hovering over the icon shows a live tooltip with CPU usage, RAM
-    usage, and system uptime.
-  - Optional alert when CPU usage hits 100%.
-  - Optional "Run on Startup" (adds/removes a registry entry).
-  - Animal choice (cat / parrot / horse) and all preferences are saved
-    to disk and restored on next launch.
-
-Secondary feature (opened from the tray menu or a left click):
-  - "Screen Time" window: tracks how long each application has been the
-    active (foreground) window, skipping idle time. Usage is stored in
-    a small local SQLite database, one row per (day, app), so history
-    builds up indefinitely (months, years) instead of being overwritten
-    every day. A date picker lets you browse any past day, not just
-    today.
-
-Run:      pythonw cpu_pets.pyw   (or: python cpu_pets.pyw)
-Requires: psutil, Pillow, PyQt5, pywin32
-"""
-
 import ctypes
 import io
 import json
@@ -62,9 +32,9 @@ except ImportError:
     WINDOWS = False
 
 
-# ============================================================================
+
 # Shared configuration
-# ============================================================================
+
 
 APP_NAME = "CPU Pets"
 STARTUP_REG_PATH = r"Software\Microsoft\Windows\CurrentVersion\Run"
@@ -107,9 +77,8 @@ SCREEN_TIME_DB = APP_DATA_DIR / "screen_time.db"
 ALERT_LOG_FILE = APP_DATA_DIR / "alert_error.log"
 
 
-# ============================================================================
 # Windows helpers shared by both features
-# ============================================================================
+
 
 def hide_and_detach_console():
     try:
@@ -188,9 +157,8 @@ def pil_image_to_qicon(img: Image.Image) -> QIcon:
     return QIcon(pixmap)
 
 
-# ============================================================================
 # Screen time storage (SQLite - keeps history for months/years)
-# ============================================================================
+
 
 def _open_db_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(str(SCREEN_TIME_DB))
@@ -241,9 +209,8 @@ def get_available_days() -> list:
         conn.close()
 
 
-# ============================================================================
 # Windows-specific screen time helpers
-# ============================================================================
+
 
 class LASTINPUTINFO(ctypes.Structure):
     _fields_ = [("cbSize", ctypes.c_uint), ("dwTime", ctypes.c_uint)]
@@ -303,10 +270,8 @@ class ScreenTimeTracker(QThread):
         self.wait(2000)
 
 
-# ============================================================================
 # Dark, modern theme (applies to the main window, the tray context menu,
 # and the date picker combo box)
-# ============================================================================
 
 DARK_QSS = """
 QWidget {
@@ -388,9 +353,8 @@ QMenu::indicator {
 """
 
 
-# ============================================================================
 # Screen time window (Qt, dark theme, with a date picker for history)
-# ============================================================================
+
 
 class ScreenTimeWindow(QWidget):
     """Opened on demand from the pet's tray menu or a left click on the
@@ -518,9 +482,8 @@ class ScreenTimeWindow(QWidget):
         self.tracker.stop()
 
 
-# ============================================================================
 # CPU Pets: the core tray pet (QSystemTrayIcon based, custom dark menu)
-# ============================================================================
+
 
 class CpuPetTray(QSystemTrayIcon):
     def __init__(self, screen_time_window: ScreenTimeWindow, app: QApplication):
