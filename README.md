@@ -64,7 +64,7 @@ CPU_Pets/
 │── horse/
 │   ├── light/
 │   └── dark/
-│── cpu_pets.pyw
+│── main.pyw
 ```
 
 Each folder contains `.ico` files for animation frames. Icons can be plain silhouettes — the app tints them white or black automatically depending on the active Windows theme.
