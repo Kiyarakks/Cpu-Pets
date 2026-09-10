@@ -9,7 +9,7 @@ It has grown from a simple screen‑time tracker into a small suite of tray‑ba
 
 ## 🐾 Demo
 
-[![Demo](/Docs/demo.gif)
+![Demo](/Docs/demo.gif)
 
 ## ✨ Features
 
