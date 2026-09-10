@@ -12,7 +12,6 @@ from datetime import date, datetime, timedelta
 from pathlib import Path
 import psutil
 from PIL import Image, ImageDraw
-
 from PyQt5.QtCore import Qt, QDateTime, QObject, QPointF, QThread, QTimer, pyqtSignal
 from PyQt5.QtGui import QColor, QFont, QIcon, QPainter, QPen, QPixmap
 from PyQt5.QtWidgets import (
