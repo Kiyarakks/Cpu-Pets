@@ -10,7 +10,6 @@ import uuid
 from collections import deque
 from datetime import date, datetime, timedelta
 from pathlib import Path
-
 import psutil
 from PIL import Image, ImageDraw
 
