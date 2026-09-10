@@ -16,7 +16,7 @@ It has grown from a simple screen‑time tracker into a small suite of tray‑ba
 ### 🐱 The Pet (tray icon)
 
 - 🖼️ **Animated Tray Icons** – Pets move smoothly in the tray area.
-- ⚡ **CPU-Based Animation** – The higher your CPU usage, the faster the pet moves.
+- ⚡ **CPU-Based Animation** – The higher your CPU usage, the slower the pet moves.
 - 🎨 **Automatic Light & Dark Theme** – Detects the current Windows theme and recolors the pet icon (white on dark theme, black on light theme) automatically — no manual switch needed.
 - 🚨 **CPU 100% Alert** – Shows a one-time tray notification when CPU usage hits 100%, and won't notify again until usage drops back below 90% and spikes again.
 - 📈 **Anomaly Detection Alert** *(new)* – Learns a rolling baseline (mean/standard deviation) of your normal CPU usage and warns you when it spikes well above that baseline — not just at a fixed 100% — so unusual activity gets caught even if it never hits the ceiling. Ignores small spikes below a minimum absolute CPU% so idle machines don't trigger false alarms.
