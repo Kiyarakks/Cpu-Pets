@@ -146,20 +146,6 @@ Simple date/time reminders that fire as tray notifications, opened from the tray
 - **Close Hung Apps** (top level of the tray menu) force-closes *every* currently unresponsive app in a single click — no list to browse first, just like clicking "End Task" in Task Manager for everything that's frozen at once.
 - Every hang and every forced close is logged for the Application Health window described above.
 
-### 🔄 Self-Update (new)
-
-Opened from Settings ▸ **Check for Updates...**, and also checked silently once a day.
-
-- Reads the latest **GitHub release** from `APP_REPO_URL` via the GitHub API.
-- Compares the release tag to `APP_VERSION` using a tolerant version parser (handles `v2.3.1`, `2.3.1-beta`, etc.).
-- Picks the release asset to install: **`main.pyw`** if attached, otherwise any other `.pyw`.
-- If a published SHA-256 is found in the release notes (or in an accompanying `.sha256` asset), the download is **checksum-verified** before install.
-- The downloaded payload is also validated: it must be non-trivial in size, must decode as UTF-8, must `compile()` cleanly as Python, must contain `APP_NAME = "CPU Pets"`, and its internal `APP_VERSION` must match the release version. Anything failing any of these checks is **not installed**.
-- On install, the current file is backed up to `main.pyw.bak`, the new content is written to a staging file and swapped in with an **atomic rename**, then the app spawns a fresh copy and quits.
-- The new copy is launched with `--wait-pid <old_pid>` and waits for the old process to exit before acquiring the single-instance lock, so the swap never races the mutex.
-- If the app is running from a packaged `.exe`, or from a read-only folder, self-update is blocked with a clear message (the dialog still offers a link to the release page).
-- Silent checks (once a day) only show a tray notification when a newer version exists; the full dialog only opens when the user explicitly chooses "Check for Updates...".
-
 ### 🫀 Heartbeat (background, powers Crash & Restart History)
 
 - Once every **20 seconds**, the app writes one row per boot to the `heartbeat` table: current CPU%, RAM%, the busiest process (name + CPU%) and the biggest memory user (name + MB).
