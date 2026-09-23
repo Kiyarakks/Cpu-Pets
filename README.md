@@ -34,8 +34,6 @@ It has grown from a simple screen‑time tracker into a small suite of tray‑ba
   - **About**
   - **Quit**
 
-  > Note: the previous "Pause" action was removed in this version; the animation always runs.
-
 - 🪟 **Custom Frameless Windows** – Every secondary window and dialog (Productivity Analytics, Weekly Report, Health Check, Crash & Restart History, Battery Health, Custom Alerts, Reminders, App Categories, About, Update, and the add/edit dialogs) now draws its **own** dark caption bar with a title, minimize (where it makes sense), and close button. Windows never shows its default white title bar. The bar is draggable to move the window, and the close button always routes through the window's own close/reject behavior (so "hide instead of quit" still works).
 - 🔄 **Run on Startup** – Optional auto-start with Windows.
 - 💾 **Persistent Settings** – Saves your chosen animal, alert preferences, and startup preference in `settings.json`.
