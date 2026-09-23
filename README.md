@@ -178,34 +178,36 @@ Simple date/time reminders that fire as tray notifications, opened from the tray
 ---
 
 ## 📂 Project Structure
+```
 CPU_Pets/
 │── cat/
-│ ├── light/
-│ └── dark/
+│   ├── light/
+│   └── dark/
 │── parrot/
-│ ├── light/
-│ └── dark/
+│   ├── light/
+│   └── dark/
 │── horse/
-│ ├── light/
-│ └── dark/
+│   ├── light/
+│   └── dark/
 │── main.pyw
+```
 
 
 Each folder contains `.ico` files for animation frames. Icons can be plain silhouettes — the app tints them white or black automatically depending on the active Windows theme.
 
 At runtime, the app creates a data folder under `%APPDATA%\CPU_Pets\` containing:
-
-%APPDATA%\CPU_Pets
+```
+%APPDATA%\CPU_Pets\
 │── settings.json (pet preferences, custom alerts, category overrides, alert toggles)
 │── screen_time.db (SQLite database: usage history, reminders, app-health counters,
 │ reliability incidents, ignored event keys, heartbeats, battery snapshots)
 │── battery_report.xml (temporary file written by powercfg, re-read on each report run)
 │── main.pyw.bak (created only after a self-update; the previous version of the script)
 │── alert_error.log (created only if a background job or notification fails)
-
+```
 
 ### Database tables inside `screen_time.db`
-
+```
 | Table | Purpose |
 |---|---|
 | `usage` | Per-day, per-process foreground seconds (Productivity Analytics). |
@@ -215,7 +217,7 @@ At runtime, the app creates a data folder under `%APPDATA%\CPU_Pets\` containing
 | `reliability_ignored` | Event keys the user has cleared, so a later scan skips them. |
 | `heartbeat` | Per-boot "last sign of life" rows (CPU, RAM, top CPU process, top RAM process). |
 | `battery_health` | One battery snapshot per day (design mAh, full-charge mAh, cycle count, label). |
-
+```
 ---
 
 ## 🚀 Usage
@@ -234,9 +236,6 @@ At runtime, the app creates a data folder under `%APPDATA%\CPU_Pets\` containing
 - Python 3.8+
 - Dependencies:
 pip install psutil pillow PyQt5 pywin32
-
-
-No additional packages are needed for the new features: Crash & Restart History uses the built-in `wevtutil.exe`, Battery Health uses the built-in `powercfg.exe`, and the self-updater uses only the standard library.
 
 ---
 
