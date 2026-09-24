@@ -247,3 +247,18 @@ pip install psutil pillow PyQt5 pywin32
 - Self-update is only possible when the app is running from a writable `.py` / `.pyw` script (not a packaged `.exe`, not a read-only folder). When blocked, the update dialog still offers a link to the release page.
 - The heartbeat only scans process memory every ~2 minutes, so the "top RAM user" attached to a crash is a rough clue, not an exact reading at the moment of failure.
 - All history (usage, reminders, app health, reliability incidents, heartbeats, battery snapshots) is kept for a bounded but long time by default (reliability events up to 180 days, heartbeat up to 20 boots, battery snapshots up to 120 days). Delete `screen_time.db` under `%APPDATA%\CPU_Pets\` if you ever want to reset everything.
+
+## Copyright
+
+CPU Pets and its original source code are Copyright © 2026 [KIYARAKKS].
+All rights reserved.
+
+The CPU Pets source code is provided publicly for viewing purposes.
+No license is granted to copy, modify, redistribute, or reuse the source
+code without permission from the copyright holder.
+
+The compiled CPU Pets executable may be downloaded and used for personal
+use. Downloading or using the executable does not transfer any ownership
+or copyright in the source code.
+
+CPU Pets is not an open-source licensed project.
