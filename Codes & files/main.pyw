@@ -1,3 +1,7 @@
+# CPU Pets
+# Copyright (C) 2026 Kiyarakks
+#
+# All rights reserved
 import ctypes
 import hashlib
 import io
