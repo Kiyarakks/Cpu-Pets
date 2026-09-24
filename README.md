@@ -250,15 +250,10 @@ pip install psutil pillow PyQt5 pywin32
 
 ## Copyright
 
-CPU Pets and its original source code are Copyright © 2026 [KIYARAKKS].
-All rights reserved.
+CPU Pets and its original source code are Copyright © 2026 KIYARAKKS. All rights reserved.
 
-The CPU Pets source code is provided publicly for viewing purposes.
-No license is granted to copy, modify, redistribute, or reuse the source
-code without permission from the copyright holder.
+The CPU Pets source code is provided publicly for viewing purposes. No license is granted to copy, modify, redistribute, or reuse the source code without permission from the copyright holder.
 
-The compiled CPU Pets executable may be downloaded and used for personal
-use. Downloading or using the executable does not transfer any ownership
-or copyright in the source code.
+The compiled CPU Pets executable may be downloaded and used for personal use. Downloading or using the executable does not transfer any ownership or copyright in the source code.
 
 CPU Pets is not an open-source licensed project.
